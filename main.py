@@ -76,6 +76,13 @@ class Spotify(Auth):
         response = requests.request("GET", endpoint, params={}, headers=self.HEADERS)
         return response.json()
 
+    def get_saved_tracks(self):
+        endpoint = self.BASE_URL + 'me/tracks'
+        payload = {'limit': 50}
+
+        response = requests.request("GET", endpoint, params=payload, headers=self.HEADERS)
+        return response.json()
+
     def get_auth(self):
         # get authorization code
         Auth.get_auth_code(self)
@@ -100,7 +107,8 @@ class Spotify(Auth):
         while next_page:
             response = self.get_followed_artists(after)
             after = response.get('artists').get('cursors').get('after')
-            artists += response.get('artists').get('items')
+            if response.get('artists').get('total') > 0:
+                artists += response.get('artists').get('items')
             if after is None:
                 next_page = False
 
@@ -108,5 +116,16 @@ class Spotify(Auth):
             artist = self.get_artist(artist.get('id'))
             print(artist.get('name'))
 
+        # retrieve saved tracks
+        tracks = []
+        next_page = True
+
+        while next_page:
+            response = self.get_saved_tracks()
+            if response.get('total') > 0:
+                tracks += response.get('items')
+            if response.get('next') is None:
+                next_page = False
+        print(tracks)
 
 Spotify().run()
