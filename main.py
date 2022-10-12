@@ -83,6 +83,27 @@ class Spotify(Auth):
         response = requests.request("GET", endpoint, params=payload, headers=self.HEADERS)
         return response.json()
 
+    def get_saved_albums(self):
+        endpoint = self.BASE_URL + 'me/albums'
+        payload = {'limit': 50}
+
+        response = requests.request("GET", endpoint, params=payload, headers=self.HEADERS)
+        return response.json()
+
+    def get_saved_shows(self):
+        endpoint = self.BASE_URL + 'me/shows'
+        payload = {'limit': 50}
+
+        response = requests.request("GET", endpoint, params=payload, headers=self.HEADERS)
+        return response.json()
+
+    def get_saved_episodes(self):
+        endpoint = self.BASE_URL + 'me/episodes'
+        payload = {'limit': 50}
+
+        response = requests.request("GET", endpoint, params=payload, headers=self.HEADERS)
+        return response.json()
+
     def get_auth(self):
         # get authorization code
         Auth.get_auth_code(self)
@@ -113,8 +134,7 @@ class Spotify(Auth):
                 next_page = False
 
         for artist in artists:
-            artist = self.get_artist(artist.get('id'))
-            print(artist.get('name'))
+            print(artist.get('id'), artist.get('name'))
 
         # retrieve saved tracks
         tracks = []
@@ -122,10 +142,54 @@ class Spotify(Auth):
 
         while next_page:
             response = self.get_saved_tracks()
-            if response.get('total') > 0:
+            if response.get('total'):
                 tracks += response.get('items')
             if response.get('next') is None:
                 next_page = False
-        print(tracks)
+
+        for track in tracks:
+            print(track.get('track').get('id'), track.get('track').get('name'))
+
+        # retrieve saved albums
+        albums = []
+        next_page = True
+
+        while next_page:
+            response = self.get_saved_albums()
+            if response.get('total'):
+                albums += response.get('items')
+            if response.get('next') is None:
+                next_page = False
+
+        for album in albums:
+            print(album.get('album').get('id'), album.get('album').get('name'))
+
+        # retrieve saved shows
+        shows = []
+        next_page = True
+
+        while next_page:
+            response = self.get_saved_shows()
+            if response.get('total'):
+                shows += response.get('items')
+            if response.get('next') is None:
+                next_page = False
+
+        for show in shows:
+            print(show.get('show').get('id'), show.get('show').get('name'))
+
+        # retrieve saved episodes
+        episodes = []
+        next_page = True
+
+        while next_page:
+            response = self.get_saved_episodes()
+            if response.get('total'):
+                episodes += response.get('items')
+            if response.get('next') is None:
+                next_page = False
+
+        for episode in episodes:
+            print(episode.get('episode').get('id'), episode.get('episode').get('name'))
 
 Spotify().run()
