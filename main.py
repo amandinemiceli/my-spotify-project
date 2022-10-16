@@ -1,4 +1,6 @@
 import os
+from dotenv import load_dotenv
+from pathlib import Path
 import secrets
 import string
 import webbrowser
@@ -7,8 +9,8 @@ import requests
 from urllib.parse import urlencode
 
 
-def get_random_code():
-    return ''.join(secrets.choice(string.ascii_uppercase + string.digits) for _ in range(16))
+def get_random_code(number):
+    return ''.join(secrets.choice(string.ascii_uppercase + string.digits) for _ in range(number))
 
 
 def base64_encode_token(token):
@@ -16,17 +18,29 @@ def base64_encode_token(token):
 
 
 class Auth:
-    CLIENT_ID     = os.getenv('CLIENT_ID')
-    CLIENT_SECRET = os.getenv('CLIENT_SECRET')
-    REDIRECT_URL  = 'http://my.spotify-project.io/callback'
+    CLIENT_ID = ''
+    CLIENT_SECRET = ''
 
-    AUTH_URL   = 'https://accounts.spotify.com/authorize?'
+    REDIRECT_URL = 'http://my.spotify-project.io/callback'
+
+    AUTH_URL = 'https://accounts.spotify.com/authorize?'
     AUTH_SCOPE = 'user-follow-read playlist-read-private user-library-read'
 
-    TOKEN_URL    = 'https://accounts.spotify.com/api/token'
+    TOKEN_URL = 'https://accounts.spotify.com/api/token'
+    REFRESH_TOKEN = ''
+
+    def __init__(self):
+        dotenv_path = Path('spotify.env')
+        load_dotenv(dotenv_path=dotenv_path)
+        self.CLIENT_ID = os.getenv('CLIENT_ID')
+        self.CLIENT_SECRET = os.getenv('CLIENT_SECRET')
+
+    def generate_auth_token(self):
+        token = self.CLIENT_ID + ':' + self.CLIENT_SECRET
+        return base64_encode_token(token)
 
     def get_auth_code(self):
-        state = get_random_code()
+        state = get_random_code(16)
 
         auth_headers = {
             'client_id': self.CLIENT_ID,
@@ -39,11 +53,8 @@ class Auth:
         webbrowser.open(self.AUTH_URL + urlencode(auth_headers))
 
     def get_access_token(self, auth_code):
-        token = self.CLIENT_ID + ':' + self.CLIENT_SECRET
-        base64_token = base64_encode_token(token)
-
         headers = {
-            'Authorization': 'Basic ' + base64_token,
+            'Authorization': 'Basic ' + self.generate_auth_token(),
             'Content-Type': 'application/x-www-form-urlencoded'
         }
 
@@ -54,12 +65,27 @@ class Auth:
         }
 
         response = requests.post(self.TOKEN_URL, data=payload, headers=headers)
+        self.REFRESH_TOKEN = response.json().get('refresh_token')
+        return response.json()
+
+    def get_refresh_token(self):
+        headers = {
+            'Authorization': 'Basic ' + self.generate_auth_token(),
+            'Content-Type': 'application/x-www-form-urlencoded'
+        }
+
+        payload = {
+            'grant_type': 'refresh_token',
+            'refresh_token': self.REFRESH_TOKEN
+        }
+
+        response = requests.post(self.TOKEN_URL, data=payload, headers=headers)
         return response.json()
 
 
 class Spotify(Auth):
     BASE_URL = 'https://api.spotify.com/v1/'
-    HEADERS  = {'Content-Type': 'application/json'}
+    HEADERS = {'Content-Type': 'application/json'}
 
     def get_followed_artists(self, after=None):
         endpoint = self.BASE_URL + 'me/following'
@@ -113,7 +139,9 @@ class Spotify(Auth):
         # exchange authorization code against access token
         response = Auth.get_access_token(self, auth_code)
 
-        # refresh_token = response.get('refresh_token')
+        #refresh_token = response.get('refresh_token')
+        #print('refresh_token: ', refresh_token)
+
         return response.get('access_token')
 
     def run(self):
@@ -191,5 +219,6 @@ class Spotify(Auth):
 
         for episode in episodes:
             print(episode.get('episode').get('id'), episode.get('episode').get('name'))
+
 
 Spotify().run()
