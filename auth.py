@@ -19,7 +19,8 @@ class Auth(object):
     _REFRESH_TOKEN = None
     _ACCESS_TOKEN_EXPIRED = True
 
-    def __init__(self, client_id: string, client_secret: string):
+    def __init__(self, client_id: string, client_secret: string, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self._CLIENT_ID = client_id
         self._CLIENT_SECRET = client_secret
 
@@ -44,11 +45,11 @@ class Auth(object):
         return self._ACCESS_TOKEN_EXPIRED
 
     @staticmethod
-    def get_random_code(number):
+    def get_random_code(number: int):
         return ''.join(secrets.choice(string.ascii_uppercase + string.digits) for _ in range(number))
 
     @staticmethod
-    def base64_encode(credentials):
+    def base64_encode(credentials: string):
         return base64.b64encode(credentials.encode()).decode()
 
     def get_auth_code(self):
@@ -87,7 +88,7 @@ class Auth(object):
             'refresh_token': self.refresh_token
         }
 
-    def get_access_token_payload(self, auth_code):
+    def get_access_token_payload(self, auth_code: string):
         return {
             'grant_type': 'authorization_code',
             'code': auth_code,
@@ -124,7 +125,7 @@ class Auth(object):
 
     def process_response(self, response):
         if response.status_code != 200:
-            response.raise_for_status()
+            return response.raise_for_status()
             # raise HTTPError('Failed to retrieve access token.')
 
         data = response.json()
