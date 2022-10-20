@@ -33,10 +33,15 @@ class Spotify(Auth):
 
         return self.get_token
 
-    def perform_get_request(self, method="GET", endpoint="/", payload=None):
+    def perform_get_request(self, method="GET", resource_type="/", item_id=None, payload=None):
         if payload is None:
             payload = {}
+
         headers = self.get_headers()
+
+        endpoint = f"{self.BASE_URL}{resource_type}"
+        if item_id is not None:
+            endpoint = f"{self.BASE_URL}{resource_type}/{item_id}"
 
         response = requests.request(method, endpoint, params=payload, headers=headers)
 
@@ -45,42 +50,26 @@ class Spotify(Auth):
         return response.json()
 
     def get_followed_artists(self, after=None):
-        endpoint = self.BASE_URL + 'me/following'
         payload = {'type': 'artist', 'limit': 50}
-
         if after is not None:
             payload['after'] = after
 
-        return self.perform_get_request(endpoint=endpoint, payload=payload)
+        return self.perform_get_request(resource_type="me/following", payload=payload)
 
     def get_artist(self, artist_id):
-        endpoint = self.BASE_URL + 'artists/' + str(artist_id)
-
-        return self.perform_get_request(endpoint=endpoint)
+        return self.perform_get_request(resource_type="artists", item_id={artist_id})
 
     def get_saved_tracks(self):
-        endpoint = self.BASE_URL + 'me/tracks'
-        payload = {'limit': 50}
-
-        return self.perform_get_request(endpoint=endpoint, payload=payload)
+        return self.perform_get_request(resource_type="me/tracks", payload={'limit': 50})
 
     def get_saved_albums(self):
-        endpoint = self.BASE_URL + 'me/albums'
-        payload = {'limit': 50}
-
-        return self.perform_get_request(endpoint=endpoint, payload=payload)
+        return self.perform_get_request(resource_type="me/albums", payload={'limit': 50})
 
     def get_saved_shows(self):
-        endpoint = self.BASE_URL + 'me/shows'
-        payload = {'limit': 50}
-
-        return self.perform_get_request(endpoint=endpoint, payload=payload)
+        return self.perform_get_request(resource_type="me/shows", payload={'limit': 50})
 
     def get_saved_episodes(self):
-        endpoint = self.BASE_URL + 'me/episodes'
-        payload = {'limit': 50}
-
-        return self.perform_get_request(endpoint=endpoint, payload=payload)
+        return self.perform_get_request(resource_type="me/episodes", payload={'limit': 50})
 
     def process_followed_artists_response(self):
         artists = []
@@ -158,4 +147,4 @@ class Spotify(Auth):
 dotenv_path = Path('spotify.env')
 load_dotenv(dotenv_path=dotenv_path)
 spotify = Spotify(os.getenv('CLIENT_ID'), os.getenv('CLIENT_SECRET'))
-spotify.process_followed_artists_response()
+spotify.process_saved_albums_response()
