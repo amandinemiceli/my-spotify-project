@@ -126,7 +126,6 @@ class Auth(object):
     def process_response(self, response):
         if response.status_code != 200:
             return response.raise_for_status()
-            # raise HTTPError('Failed to retrieve access token.')
 
         data = response.json()
         now = datetime.datetime.now()
