@@ -36,7 +36,7 @@ class Auth(object):
         return self._ACCESS_TOKEN
 
     @access_token.setter
-    def token(self, access_token):
+    def access_token(self, access_token):
         self._ACCESS_TOKEN = access_token
 
     @property
