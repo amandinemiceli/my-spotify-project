@@ -20,7 +20,6 @@ class Auth(object):
     _ACCESS_TOKEN_EXPIRED = True
 
     def __init__(self, client_id: string, client_secret: string, *args, **kwargs):
-        super().__init__(*args, **kwargs)
         self._CLIENT_ID = client_id
         self._CLIENT_SECRET = client_secret
 
@@ -35,6 +34,10 @@ class Auth(object):
     @property
     def access_token(self):
         return self._ACCESS_TOKEN
+
+    @access_token.setter
+    def token(self, access_token):
+        self._ACCESS_TOKEN = access_token
 
     @property
     def refresh_token(self):
@@ -140,7 +143,7 @@ class Auth(object):
     def authenticate(self):
         # get authorization code
         self.get_auth_code()
-        auth_code = input("Enter code from redirect URL here: ")
+        auth_code = input("Enter code from redirect URL here: ").strip()
 
         # exchange authorization code against access token
         return self.get_access_token(auth_code)

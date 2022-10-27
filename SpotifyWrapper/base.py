@@ -1,4 +1,4 @@
-from auth import Auth
+from SpotifyWrapper.auth import Auth
 import string
 import requests
 
@@ -6,29 +6,37 @@ import requests
 class Base(Auth):
     BASE_URL = 'https://api.spotify.com/v1/'
 
-    _TOKEN = None
-
     def __init__(self, client_id: string, client_secret: string, *args, **kwargs):
         super().__init__(client_id, client_secret, *args, **kwargs)
-        self.CLIENT_ID = client_id
-        self.CLIENT_SECRET = client_secret
 
-    @property
-    def get_token(self):
-        return self._TOKEN
+        self.authenticate()
 
     def get_headers(self):
-        token = self.fetch_token()
         return {
-            'Authorization': f'Bearer {token}',
+            'Authorization': f"Bearer {self.access_token}",
             'Content-Type': 'application/json'
         }
 
-    def fetch_token(self):
-        if self.get_token is None:
-            self._TOKEN = Auth(self.CLIENT_ID, self.CLIENT_SECRET).authenticate()
+    def get_saved_resource(self, resource_type='artist', offset=None):
+        if resource_type is None:
+            return ValueError('You must provide a resource type.')
 
-        return self.get_token
+        payload = {'limit': 50}
+
+        if resource_type == 'artist':
+            payload['type'] = resource_type
+            if offset is not None:
+                payload['after'] = offset
+
+            response = self.perform_get_request(endpoint="me/following", payload=payload)
+        else:
+            endpoint = f"me/{resource_type}s"
+            if offset is not None:
+                payload['offset'] = offset
+
+            response = self.perform_get_request(endpoint=endpoint, payload=payload)
+
+        return response
 
     def perform_get_request(self, method="GET", endpoint="/", item_id=None, payload=None):
         if payload is None:

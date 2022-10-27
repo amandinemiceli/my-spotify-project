@@ -1,4 +1,6 @@
 .idea/
 .cache
+.DS_Store
 
-spotify.env
+SpotifyWrapper/__pycache__/
+config/spotify.env
