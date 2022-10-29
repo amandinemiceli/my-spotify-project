@@ -6,8 +6,8 @@ import requests
 class Base(Auth):
     BASE_URL = 'https://api.spotify.com/v1/'
 
-    def __init__(self, client_id: string, client_secret: string, *args, **kwargs):
-        super().__init__(client_id, client_secret, *args, **kwargs)
+    def __init__(self, client_id: string, client_secret: string, redirect_uri: string, *args, **kwargs):
+        super().__init__(client_id, client_secret, redirect_uri, *args, **kwargs)
 
         self.authenticate()
 

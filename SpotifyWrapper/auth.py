@@ -8,8 +8,6 @@ from urllib.parse import urlencode
 
 
 class Auth(object):
-    REDIRECT_URL = 'http://my.spotify-project.io/callback'
-
     AUTH_URL = 'https://accounts.spotify.com/authorize?'
     AUTH_SCOPE = 'user-follow-read playlist-read-private user-library-read'
 
@@ -19,9 +17,10 @@ class Auth(object):
     _REFRESH_TOKEN = None
     _ACCESS_TOKEN_EXPIRED = True
 
-    def __init__(self, client_id: string, client_secret: string, *args, **kwargs):
+    def __init__(self, client_id: string, client_secret: string, redirect_uri: string, *args, **kwargs):
         self._CLIENT_ID = client_id
         self._CLIENT_SECRET = client_secret
+        self._REDIRECT_URI = redirect_uri
 
     @property
     def client_id(self):
@@ -30,6 +29,10 @@ class Auth(object):
     @property
     def client_secret(self):
         return self._CLIENT_SECRET
+
+    @property
+    def redirect_uri(self):
+        return self._REDIRECT_URI
 
     @property
     def access_token(self):
@@ -60,7 +63,7 @@ class Auth(object):
 
         auth_headers = {
             'client_id': self.client_id,
-            'redirect_uri': self.REDIRECT_URL,
+            'redirect_uri': self.redirect_uri,
             'scope': self.AUTH_SCOPE,
             'response_type': 'code',
             'state': state
@@ -95,7 +98,7 @@ class Auth(object):
         return {
             'grant_type': 'authorization_code',
             'code': auth_code,
-            'redirect_uri': self.REDIRECT_URL
+            'redirect_uri': self.redirect_uri,
         }
 
     def get_access_token(self, auth_code=None):

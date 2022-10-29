@@ -38,7 +38,8 @@ def get_data(spotify_session, resource_type='artist'):
 # Init a Spotify session
 dotenv_path = Path('config/spotify.env')
 load_dotenv(dotenv_path=dotenv_path)
-session = Base(os.getenv('CLIENT_ID'), os.getenv('CLIENT_SECRET'))
+redirect_uri = 'http://my.spotify-project.io/callback'
+session = Base(os.getenv('CLIENT_ID'), os.getenv('CLIENT_SECRET'), redirect_uri)
 
 # Use session to play with Spotify API
 artists = get_data(session)
